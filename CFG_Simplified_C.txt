@@ -1,0 +1,57 @@
+This is a simplified CFG for C language for your reference, It will give you an idea about how to make CFG for the toy language given in the Project:
+
+<program> ::= <external-declaration> | <program> <external-declaration>
+
+<external-declaration> ::= <function-definition> | <declaration>
+
+<function-definition> ::= <type-specifier> <identifier> "(" <parameter-list> ")" "{" <block-item-list> "}"
+
+<parameter-list> ::= <parameter-declaration> | <parameter-list> "," <parameter-declaration>
+
+<parameter-declaration> ::= <type-specifier> <identifier>
+
+<block-item-list> ::= <block-item> | <block-item-list> <block-item>
+
+<block-item> ::= <declaration> | <statement>
+
+<declaration> ::= <type-specifier> <init-declarator> ";"
+
+<init-declarator> ::= <identifier> | <identifier> "=" <expression>
+
+<type-specifier> ::= "int" | "float" | "char" | "void"
+
+<statement> ::= <expression-statement>
+              | <compound-statement>
+              | <selection-statement>
+              | <iteration-statement>
+              | <jump-statement>
+
+<expression-statement> ::= <expression> ";"
+
+<compound-statement> ::= "{" <block-item-list> "}"
+
+<selection-statement> ::= "if" "(" <expression> ")" <statement> | "if" "(" <expression> ")" <statement> "else" <statement>
+
+<iteration-statement> ::= "while" "(" <expression> ")" <statement>
+                        | "for" "(" <expression-statement> <expression-statement> <expression> ")" <statement>
+
+<jump-statement> ::= "return" <expression> ";"
+
+<expression> ::= <assignment-expression>
+
+<assignment-expression> ::= <identifier> "=" <expression>
+                          | <additive-expression>
+
+<additive-expression> ::= <multiplicative-expression>
+                        | <additive-expression> "+" <multiplicative-expression>
+                        | <additive-expression> "-" <multiplicative-expression>
+
+<multiplicative-expression> ::= <primary-expression>
+                              | <multiplicative-expression> "*" <primary-expression>
+                              | <multiplicative-expression> "/" <primary-expression>
+
+<primary-expression> ::= <identifier> | <constant> | "(" <expression> ")"
+
+<identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+<constant> ::= [0-9]+

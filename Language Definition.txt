@@ -1,0 +1,219 @@
+I'll provide the description in more detail so that you'll make it better:
+
+Alphabet used:
+-Lowercase Alphabets: a-z
+-Digits: 0-9
+-Special symbols: { '+' , '-' , '%', '/', '*', '<', '>', '=', '_', '(', ')', ';' , ',' , ':', '{','}' }
+
+Constants:
+1.Integer constants:
+   a. Decimal Constants: 0-9
+   b. Binary Constants: 0/1
+   c. Octal Constants: 0-7
+   Note: Every integer will be represented as a pair '(value,base)' where the
+Value can be a decimal constant, binary constant, or octal constant and the base is from {2,8,10} only.
+
+2.Character constants: 
+single character enclosed in single quotes (' '). It represents an integer value corresponding to the ASCII or Unicode encoding of the character.
+Examples: 'a','Z','1','\n','\t' etc. Use all such character constants.
+
+3.String constant: 
+A string is a sequence of characters in the alphabet enclosed in double quotes ( ' " ' and ' " ' ). 
+Example: “Welcome”, “Welcome to the CS F363 course”, “1+2bc”, etc.
+
+Keywords:
+int, char, if, else, while, for, main, begin, end, print, scan, program, VarDecl,  inc, dec
+
+Note: Can't be used as variables
+
+Data Types:
+Only int (integer values) and char (character constants).
+
+Variables and Identifiers:
+
+An identifier in the toy language must begin with a lowercase letter (a − z) and contain only lowercase letters, digits (0 − 9), and underscores (_). However, at most, one underscore (_) is allowed.
+Examples:
+Valid variable names: age, count, tax_12, net_income, is_ready; 
+Invalid variable names: _sum, sum_curr_total, 1sum;
+
+Declaration of variables:
+
+All variables in the program must be defined within a block called VarDeclaration:
+
+Example:
+ begin VarDecl:
+ (var_1, type); //var_1 is the name of the variable, and type is int or char.
+ (var_2, type); //var_2 is the name of the variable, and type is int or char.
+ ....
+ ....
+ ....
+ (var_k, type); //var_k is the name of the variable, and type is int or char.
+ end VarDecl
+
+Note: All variables must be defined in the block that starts with begin 'VarDecl:' and ends with 'end VarDecl'. Each variable must be defined as an ordered pair with the first element as the name of the variable and the second element as its type, int or char. Note that each pair ends with a semicolon ';' ; a line may contain several declarations of variables. Also Note that in the variable declaration, assigning a value to one or more variables is not allowed.  A variable cannot be used in the program if it is not defined in this block. A variable name cannot be the same as any of the keywords.
+
+Operators:
+• Arithmetic Operators: 
+'+' //adition
+'-' // subtraction 
+'*' // multiplication 
+'/' // division ; only takes quotient 
+'%'// remainder 
+Note: Note that these operators are allowed only on int data type, and we are allowing three different integer type data (decimal, binary, and octal). So, when performing any arithmetic operation on two integers, the result must be of the highest precedence type; decimal is higher order than octal, and octal is higher than binary. 
+Examples: 
+ (12, 10) + (11, 2) = (15, 10)
+ (12, 10) + (11, 8) = (21, 10)
+ (11, 2) + (11, 8) = (14, 8)
+
+
+• Relational Operators
+ '=' (equal to), '>', '<', '>=', '<=', '<>' (not equal to) 
+The above Note also holds for relational operators. 
+• Assignment Operators 
+':=', '+=','-=', '*=', '/=', '%=' 
+The above note also holds for assignment operators. 
+• Separators 
+ '(', ')',  ',' , ';' ,'{' , '}' , ' " ', '@'
+
+Input and Output:
+- `print` is used to output a string constant or formatted text.
+  - **String Constant:**
+    - A string constant is a sequence of characters enclosed in double quotes.
+    - Examples:
+      ```
+      print("Welcome to CS F363");
+      print("Some random text for understanding");
+      ```
+  - **Formatted Text:**
+    - A combination of a text string (made of symbols in the alphabet) and `k` occurrences of a special symbol `@` between double quotes, followed by a list of `k` variables and constants.
+    - Integers are printed in decimal equivalent.
+    - Examples:
+      ```
+      print("The values are @, @, and @: ", a, b, c); // Valid
+      print("The value of a is : @", (10, 2)); // Valid
+      print("The value of a is : @", 'x'); // Valid
+      print("a = @, b = @", (10, 2), (15, 8)); // Valid
+      print("The value of a is: @," (10, 2)) // Invalid (missing semicolon)
+      print("a = @, b = @", (10, 2)); // Invalid (only one value listed)
+      ```
+- `scan` is used to read a list of variables from the user.
+  - Contains formatted text with `@` symbols followed by an equal number of variables.
+  - Read integers are assumed to be decimal.
+  - Examples:
+    ```
+    scan("@, @, @", a, b, c); // Valid
+    scan("@, @", a, b); // Valid
+    scan("@, @", a, b) // Invalid (missing semicolon)
+    scan("@, @", a); // Invalid (mismatch in `@` and variables)
+    ```
+
+Assignment Statement:
+- Used to assign a value to a variable.
+  - Syntax: `variable_name assign_operator expression;`
+  - `expression` can be a constant, variable, or arithmetic expression involving valid operators.
+
+Block of Statements:
+- A block is a set of one or more statements.
+  - Starts with `begin` and ends with `end`.
+  - Example:
+    ```
+    begin
+      statement_1;
+      ...
+      statement_k;
+    end
+    ```
+
+Conditional Statements:
+- **Simple if:**
+  - Syntax: `if (condition) statement;`
+  - `condition` is a variable or relational expression.
+  - Executes if `condition` is non-zero.
+  - Example:
+    ```
+    i := (10, 2);
+    if i > (20, 10) then
+    begin
+      i := (1, 10);
+      i := i - (1, 10);
+      print("@", i);
+    end;
+    ```
+- **if-then-else:**
+  - Syntax: `if (condition) statement_1 else statement_2;`
+  - `statement_1` executes if `condition` is non-zero.
+  - `statement_2` executes if `condition` is zero.
+  - Example:
+    ```
+    i := (10, 2);
+    if i > (20, 10) then
+    begin
+      i := (1, 10);
+      i -= (1, 10);
+      print("@", i);
+    end
+    else
+    begin
+      i := (20, 2);
+      print("@", i);
+    end;
+    ```
+  - *Note: Nested if statements are not considered.*
+
+Looping Statements:
+- **while-do:**
+  - Syntax: `while (condition) S;`
+  - `condition` is a variable or relational expression.
+  - `S` is a block of statements executed while `condition` is non-zero.
+  - Example:
+    ```
+    while (number > 0)
+    begin
+      sum := sum + number;
+      number := number - 1;
+    end;
+    ```
+- **for-do:**
+  - Syntax: `for variable_name := t_1 to t_2 inc/dec t_3 do S;`
+  - `variable_name` is the loop control variable.
+  - `t_1` and `t_2` are integers (decimal, octal, or binary) or arithmetic expressions.
+  - `inc t_3` increases `t_1` by `t_3` each time, `dec t_3` decreases `t_1` by `t_3` each time, subject to limit `t_2`.
+  - `S` is the body of the loop.
+  - Examples:
+    ```
+    b := (20, 10);
+    for a := (10, 8) to b + (10, 2) inc (1, 10) do
+    begin
+      print("The value of a = @", a);
+    end;
+
+    for a := a + (5, 8) dec b - (15, 10) do
+    begin
+      print("The value of a = @", a);
+    end;
+    ```
+
+Arrays:
+- One-dimensional arrays with static declaration.
+  - Syntax: `(array_name[t], type);`
+  - `array_name` is the array identifier.
+  - `t` is a positive decimal integer (size of the array).
+  - `type` is either `int` (values are decimal) or `char`.
+  - Array indexing starts from **1**.
+  - Examples:
+    ```
+    (A[6], int); // Valid, array `A` of 6 integers.
+    (B[12], char); // Valid, array `B` of 12 characters.
+    ```
+
+Comments:
+- C-style comments are allowed:
+  - **Single-line comments:** `// This is a comment`
+  - **Multi-line comments:**
+    ```
+    /*
+    This is a
+    multi-line comment
+    */
+    ```
+
