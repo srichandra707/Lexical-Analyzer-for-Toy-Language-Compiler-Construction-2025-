@@ -79,6 +79,34 @@ STRING_CONST \"[A-Za-z0-9+-.]+\"
 <VARDECLARATIONS>{ARRAY} {printf("%s ---------- ARRAY DECLARATION\n",yytext);}
 <VARDECLARATIONS>"end VarDecl" {printf("Leaving VARDECLARATIONS STATE\n");BEGIN(0);REJECT;}
 
+{IDENTIFIER}[ ]*":="[ ]*{IDENTIFIER} { 
+    if(checkInTable(yytext)){
+        printf("Error: Assignment to an undefined identifier\n");
+    } else {
+        printf("%s ---------- ASSIGNMENT STATEMENT\n", yytext);
+    }
+}
+
+{IDENTIFIER}[ ]*":="[ ]*({DECIMAL}|{OCTAL}|{BINARY}) {
+    if(checkInTable(yytext)){
+        printf("Error: Assignment to an undefined identifier\n");
+    } else {
+        printf("%s ---------- ASSIGNMENT STATEMENT\n", yytext);
+    }
+}
+
+"if"[ ]*"\("[ ]*{IDENTIFIER}[ ]*{RELATIONAL_OPERATOR}[ ]*({IDENTIFIER}|{DECIMAL}|{OCTAL}|{BINARY})[ ]*"\)" {
+    printf("%s ---------- CONDITIONAL STATEMENT\n", yytext);
+}
+
+"while"[ ]*"\("[ ]*{IDENTIFIER}[ ]*{RELATIONAL_OPERATOR}[ ]*({IDENTIFIER}|{DECIMAL}|{OCTAL}|{BINARY})[ ]*"\)" {
+    printf("%s ---------- LOOP STATEMENT\n", yytext);
+}
+
+"for"[ ]*"\("[ ]*{IDENTIFIER}[ ]*":="[ ]*({DECIMAL}|{IDENTIFIER})[ ]*";"[ ]*{IDENTIFIER}[ ]*{RELATIONAL_OPERATOR}[ ]*({DECIMAL}|{IDENTIFIER})[ ]*";"[ ]*{IDENTIFIER}[ ]*(\+\+|--)[ ]*"\)" {
+    printf("%s ---------- FOR LOOP STATEMENT\n", yytext);
+}
+
 {DECIMAL} {printf("%s ---------- INTEGER constant\n",yytext);}
 {OCTAL} {printf("%s ---------- INTEGER constant\n",yytext);}
 {BINARY} {printf("%s ---------- INTEGER constant\n",yytext);}
