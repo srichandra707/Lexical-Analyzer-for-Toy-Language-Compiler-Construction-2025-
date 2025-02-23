@@ -17,10 +17,11 @@ int mapCount=0;
 %x VARDECLARATIONS
 %x COMMENT
 
+INVALID_IDENTIFIER ([a-z]([a-z0-9]*_)([a-z0-9]*_)+[a-z0-9]+|[^a-z].*)
 IDENTIFIER [a-z][a-z0-9]*_?[a-z0-9]*
+
 ARRAY [a-z][a-z0-9]*_?[a-z0-9]*\[[0-9]+\]
-INVALID_IDENTIFIER ([^a-z][^,]*|[a-z0-9]*_{2,}[a-z0-9]*|[a-z0-9_]*[^a-z0-9_][a-z0-9_]*) 
-KEYWORD (int|char|if|else|while|for|main|begin|end|print|scan|program|VarDecl|inc|dec)
+KEYWORD (int|char|if|else|then|while|for|main|begin|end|print|scan|program|VarDecl|inc|dec)
 SEPERATOR [\(\)\{\};:,@\"\']
 ASSIGNMENT_OPERATOR (:=|(\+|-|\*|\/|%)=)
 ARITHMETIC_OPERATOR (\+|\-|\*|/|%)
@@ -35,6 +36,14 @@ STRING_CONST \"[A-Za-z0-9+-.]+\"
 {KEYWORD} {printf("%s ---------- KEYWORD\n",yytext);}
 {SEPERATOR} {printf("%s ---------- SEPERATOR\n",yytext);}
 {ASSIGNMENT_OPERATOR} {printf("%s ---------- ASSIGNMENT_OPERATOR\n",yytext);}
+{ARRAY} {
+    if(checkInTable(yytext)){
+        printf("Error: undefined array\n");
+    }
+    else{
+        printf("%s ---------- ARRAY\n",yytext);
+    }
+}
 {IDENTIFIER} {
     if(checkInTable(yytext)){
         printf("Error: undefined identifier\n");
@@ -50,9 +59,8 @@ STRING_CONST \"[A-Za-z0-9+-.]+\"
     printf("Error: Keyword is used as an identifier\n");
     for(int i=0;i<4;i++){yymore();printf(".\n");}
 }
-<VARDECLARATIONS>\({INVALID_IDENTIFIER},[ ]*("int"|"char")\);
-{
-    printf("Error: invalid identifier\n");
+<VARDECLARATIONS>\({INVALID_IDENTIFIER},[ ]*("int"|"char")\); {
+    printf("Error: Invalid identifier\n");
 }
 <VARDECLARATIONS>\({IDENTIFIER},[ ]*("int"|"char")\); {
     if(!addToTable(yytext)){
@@ -63,6 +71,7 @@ STRING_CONST \"[A-Za-z0-9+-.]+\"
         REJECT;
     }
 }
+
 <VARDECLARATIONS>\({ARRAY},[ ]*("int"|"char")\); {
     if(!addToTable(yytext)){
         printf("Error: Array identifier already declared\n");
@@ -131,8 +140,15 @@ int addToTable(char* text){
 }
 
 int checkInTable(char* text){
+    char base[50];
+    if(strchr(text, '[')){
+        sscanf(text,"%[^[]",base);
+    }
+    else{
+        strcpy(base,text);
+    }
     for(int i=0;i<mapCount;i++){
-        if(strcmp(map[i].name,text)==0){
+        if(strcmp(map[i].name,base)==0){
             return 0;
         }
     }
