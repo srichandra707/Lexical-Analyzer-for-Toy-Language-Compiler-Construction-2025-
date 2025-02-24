@@ -1,8 +1,10 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 int addToTable(char* text);
 int checkInTable(char* text);
+int validPrint(char* text,int flag);
 #define MAX_VARIABLES 100
 
 typedef struct{
@@ -12,32 +14,39 @@ typedef struct{
 
 variable map[MAX_VARIABLES];
 int mapCount=0;
+
+int requiredVariableCount=0;
 %}
 
 %x VARDECLARATIONS
 %x COMMENT
 
+
 INVALID_IDENTIFIER ([a-z]([a-z0-9]*_)([a-z0-9]*_)+[a-z0-9]+|[^a-z].*)
 IDENTIFIER [a-z][a-z0-9]*_?[a-z0-9]*
 
 ARRAY [a-z][a-z0-9]*_?[a-z0-9]*\[[0-9]+\]
-KEYWORD (int|char|if|else|then|while|for|main|begin|end|print|scan|program|VarDecl|inc|dec)
-SEPERATOR [\(\)\{\};:,@\"\']
+KEYWORD (int|char|if|else|then|while|for|to|do|main|begin|end|print|scan|program|VarDecl|inc|dec)
+SEPERATOR [\(\)\{\};:,\"\']
 ASSIGNMENT_OPERATOR (:=|(\+|-|\*|\/|%)=)
-ARITHMETIC_OPERATOR (\+|\-|\*|/|%)
+ARITHMETIC_OPERATOR (\+|-|\*|\/|%)
 RELATIONAL_OPERATOR (=|>|<|>=|<=|<>)
 DECIMAL \([0-9]+,[ ]*10\)
 OCTAL \([0-7]+,[ ]*8\)
 BINARY \([0-1]+,[ ]*2\)
 
+PRINT_VARIABLE1 ({IDENTIFIER}|{ARRAY})
+PRINT_VARIABLE2 ({DECIMAL}|{OCTAL}|{BINARY})
 CHAR_CONST \'(\\[tnsr]|[a-zA-Z])\'
-STRING_CONST \"[A-Za-z0-9+-.]+\"
+STRING_CONST [^\"]*
 %%
 {KEYWORD} {printf("%s ---------- KEYWORD\n",yytext);}
 {SEPERATOR} {printf("%s ---------- SEPERATOR\n",yytext);}
 {ASSIGNMENT_OPERATOR} {printf("%s ---------- ASSIGNMENT_OPERATOR\n",yytext);}
+{ARITHMETIC_OPERATOR} {printf("%s ---------- ARITHMETIC_OPERATOR\n",yytext);}
+{RELATIONAL_OPERATOR} {printf("%s ---------- RELATIONAL_OPERATOR\n",yytext);}
 {ARRAY} {
-    if(checkInTable(yytext)){
+    if(checkInTable(yytext)==0){
         printf("Error: undefined array\n");
     }
     else{
@@ -45,7 +54,7 @@ STRING_CONST \"[A-Za-z0-9+-.]+\"
     }
 }
 {IDENTIFIER} {
-    if(checkInTable(yytext)){
+    if(checkInTable(yytext)==0){
         printf("Error: undefined identifier\n");
     }
     else{
@@ -88,16 +97,175 @@ STRING_CONST \"[A-Za-z0-9+-.]+\"
 <VARDECLARATIONS>{ARRAY} {printf("%s ---------- ARRAY DECLARATION\n",yytext);}
 <VARDECLARATIONS>"end VarDecl" {printf("Leaving VARDECLARATIONS STATE\n");BEGIN(0);REJECT;}
 
+"0" {printf("0 ---------- INTEGER constant\n");}
 {DECIMAL} {printf("%s ---------- INTEGER constant\n",yytext);}
 {OCTAL} {printf("%s ---------- INTEGER constant\n",yytext);}
 {BINARY} {printf("%s ---------- INTEGER constant\n",yytext);}
 
 \([0-9]+,[ ]*[0-9]*\) {printf("Error: invalid integer constant\n");}
 
-"//".*\n {printf("Single line comment - ignored");}
+"//"[^\n]*\n {printf("Single line comment - ignored\n");}
+"//"[^\n]* {printf("Single line comment - ignored\n");}
+
 "/*" {printf("Entering COMMENT state");BEGIN(COMMENT);}
 <COMMENT>. {}
 <COMMENT>"*/" {printf("Leaving COMMENT state\n");BEGIN(0);}
+
+
+
+
+"scan"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE1})+\); {
+    int flag=validPrint(yytext,1);
+    if(flag==0){
+        printf(" %s ---------- Error: invalid input statement because of count mismatch\n",yytext);
+    }
+    else if(flag==2){
+        printf("%s ---------- Error: invalid input statement because of undefined vars\n",yytext);
+    }
+    else{
+        printf("%s ---------- Valid input statement\n",yytext);
+    }
+}
+
+
+"scan"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE1})+\) {
+    printf("%s ---------- Error: Missing semicolon in input statement\n",yytext);
+}
+
+
+"scan"\(\"{STRING_CONST}\".*\) {
+    printf("%s ---------- Error: Missing semicolon in input statement\n",yytext);
+}
+
+"scan"\(\"{STRING_CONST}\".*\); {
+    printf("%s ---------- Invalid input statement\n",yytext);
+}
+
+
+"print"\(\"{STRING_CONST}\"\); {printf("%s ---------- Valid output statement\n",yytext);}
+
+"print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{CHAR_CONST})+\); {
+    char stringy[100]="";
+    char variables[100]="";
+    char *s=yytext;
+
+    s+=6;
+    char *stringStart =strchr(s,'"');
+    char *stringEnd =strrchr(s,'"');
+    int len=stringEnd-stringStart-1;
+    strncpy(stringy,stringStart+1,len);
+    stringy[len]='\0';
+
+    char* varStart =strchr(stringEnd+1,',');
+    varStart++;
+    char* varEnd =strrchr(varStart,')');
+    int varLen=varEnd-varStart;
+    strncpy(variables,varStart,varLen);
+    variables[varLen]='\0';
+
+    int count=0;
+    int vars=1;
+    
+    for(char *c=stringy;*c;c++){
+        if(*c=='@'){
+            count++;
+        }
+    }
+    
+    for(char *c=variables;*c;c++){
+        if(*c==','){
+            vars++;
+        }
+    }
+
+    if(count!=vars){
+        printf("%s ---------- Error: invalid output statement because of count mismatch\n",yytext);
+    }
+    else{
+        printf("%s ---------- Valid output statement\n",yytext);
+    }
+}
+
+"print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE2})+\); {
+    char stringy[100]="";
+    char variables[100]="";
+    char *s=yytext;
+
+    s+=6;
+    char *stringStart =strchr(s,'"');
+    char *stringEnd =strrchr(s,'"');
+    int len=stringEnd-stringStart-1;
+    strncpy(stringy,stringStart+1,len);
+    stringy[len]='\0';
+
+    char* varStart =strchr(stringEnd+1,',');
+    varStart++;
+    char* varEnd =strrchr(varStart,')');
+    int varLen=varEnd-varStart;
+    strncpy(variables,varStart,varLen);
+    variables[varLen]='\0';
+
+    int count=0;
+    int vars=1;
+    
+    for(char *c=stringy;*c;c++){
+        if(*c=='@'){
+            count++;
+        }
+    }
+    
+    for(char *c=variables;*c;c++){
+        if(*c==','){
+            vars++;
+        }
+    }
+    vars/=2;
+
+    if(count!=vars){
+        printf("%s ---------- Error: invalid output statement because of count mismatch\n",yytext);
+    }
+    else{
+        printf("%s ---------- Valid output statement\n",yytext);
+    }
+}
+
+"print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE1})+\); {
+    int flag=validPrint(yytext,0);
+    if(flag==0){
+        printf(" %s ---------- Error: invalid output statement because of count mismatch\n",yytext);
+    }
+    else if(flag==2){
+        printf("%s ---------- Error: invalid output statement because of undefined vars\n",yytext);
+    }
+    else{
+        printf("%s ---------- Valid output statement\n",yytext);
+    }
+}
+
+"print"\(\"{STRING_CONST}\"\) {
+    printf("%s ---------- Error: Missing semicolon in print statement\n",yytext);
+}
+
+"print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{CHAR_CONST})+\) {
+    printf("%s ---------- Error: Missing semicolon in print statement\n",yytext);
+}
+
+"print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE2})+\) {
+    printf("%s ---------- Error: Missing semicolon in print statement\n",yytext);
+}
+
+"print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE1})+\) {
+    printf("%s ---------- Error: Missing semicolon in print statement\n",yytext);
+}
+
+
+"print"\(\"{STRING_CONST}\".*\) {
+    printf("%s ---------- Error: Missing semicolon in print statement\n",yytext);
+}
+
+"print"\(\"{STRING_CONST}\".*\); {
+    printf("%s ---------- Invalid output statement\n",yytext);
+}
 %%
 int yywrap(){return 1;}
 int main(){
@@ -149,7 +317,67 @@ int checkInTable(char* text){
     }
     for(int i=0;i<mapCount;i++){
         if(strcmp(map[i].name,base)==0){
-            return 0;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int validPrint(char*text,int flag_print_scan){
+    char stringy[100]="";
+    char variables[100]="";
+    char *s=text;
+    if(flag_print_scan==0){s+=6;}
+    else{s+=5;}
+    char *stringStart =strchr(s,'"');
+    char *stringEnd =strrchr(s,'"');
+    int len=stringEnd-stringStart-1;
+    strncpy(stringy,stringStart+1,len);
+    stringy[len]='\0';
+
+    char* varStart =strchr(stringEnd+1,',');
+    varStart++;
+    char* varEnd =strrchr(varStart,')');
+    int varLen=varEnd-varStart;
+    strncpy(variables,varStart,varLen);
+    variables[varLen]='\0';
+
+    int count=0;
+    int vars=1;
+    
+    for(char *c=stringy;*c;c++){
+        if(*c=='@'){
+            count++;
+        }
+    }
+    
+    for(char *c=variables;*c;c++){
+        if(*c==','){
+            vars++;
+        }
+    }
+
+    if(count!=vars){
+        return 0;
+    }
+
+    char *var = variables;
+    char varBuffer[50];
+
+    while(*var) {
+        while(*var == ' ') var++;
+        int i = 0;
+        while(*var && *var != ',' && *var != ')' && *var != ' ') {
+            varBuffer[i++] = *var++;
+            if(i >= 49) break;
+        }
+        varBuffer[i] = '\0';
+        while(*var == ' ' || *var == ',') var++;
+
+        if(strlen(varBuffer) > 0) {
+            if(checkInTable(varBuffer)==0) {
+                return 2;
+            }
         }
     }
     return 1;
