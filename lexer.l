@@ -66,7 +66,6 @@ STRING_CONST [^\"]*
 
 <VARDECLARATIONS>\({KEYWORD},[ ]*("int"|"char")\); {
     printf("Error: Keyword is used as an identifier\n");
-    for(int i=0;i<4;i++){yymore();printf(".\n");}
 }
 <VARDECLARATIONS>\({INVALID_IDENTIFIER},[ ]*("int"|"char")\); {
     printf("Error: Invalid identifier\n");
@@ -74,7 +73,6 @@ STRING_CONST [^\"]*
 <VARDECLARATIONS>\({IDENTIFIER},[ ]*("int"|"char")\); {
     if(!addToTable(yytext)){
         printf("Error: Identifier already declared\n");
-        for(int i=0;i<4;i++){printf(".\n");}
     }
     else{
         REJECT;
@@ -84,7 +82,6 @@ STRING_CONST [^\"]*
 <VARDECLARATIONS>\({ARRAY},[ ]*("int"|"char")\); {
     if(!addToTable(yytext)){
         printf("Error: Array identifier already declared\n");
-        for(int i=0;i<4;i++){printf(".\n");}
     }
     else{
         REJECT;
@@ -102,10 +99,13 @@ STRING_CONST [^\"]*
 {OCTAL} {printf("%s ---------- INTEGER constant\n",yytext);}
 {BINARY} {printf("%s ---------- INTEGER constant\n",yytext);}
 
-\([0-9]+,[ ]*[0-9]*\) {printf("Error: invalid integer constant\n");}
+\([0-9]+,[ ]*[0-9]*\) {printf("%s ---------- Error: invalid integer constant\n",yytext);}
 
 "//"[^\n]*\n {printf("Single line comment - ignored\n");}
 "//"[^\n]* {printf("Single line comment - ignored\n");}
+
+<VARDECLARATIONS>"//"[^\n]*\n {printf("Single line comment - ignored\n");}
+<VARDECLARATIONS>"//"[^\n]* {printf("Single line comment - ignored\n");}
 
 "/*" {printf("Entering COMMENT state");BEGIN(COMMENT);}
 <COMMENT>. {}
@@ -350,13 +350,13 @@ int validPrint(char*text,int flag_print_scan){
             count++;
         }
     }
-    
+    //printf("%d\n",count);
     for(char *c=variables;*c;c++){
         if(*c==','){
             vars++;
         }
     }
-
+    //printf("%d\n",vars);
     if(count!=vars){
         return 0;
     }
