@@ -117,7 +117,7 @@ else{REJECT;}
     strncpy(stringy,stringStart+1,len);
     stringy[len]='\0';
 
-    char* varStart =findfirstOccr(stringEnd+1,',');
+    char* varStart =findfirstOcc(stringEnd+1,',');
     varStart++;
     char* varEnd =strrchr(varStart,')');
     int varLen=varEnd-varStart;
@@ -144,13 +144,13 @@ else{REJECT;}
     char variables[100]="";
     char *s=yytext;
     s+=6;
-    char *stringStart =findfirstOccr(s,'"');
+    char *stringStart =findfirstOcc(s,'"');
     char *stringEnd =strrchr(s,'"');
     int len=stringEnd-stringStart-1;
     strncpy(stringy,stringStart+1,len);
     stringy[len]='\0';
 
-    char* varStart =findfirstOccr(stringEnd+1,',');
+    char* varStart =findfirstOcc(stringEnd+1,',');
     varStart++;
     char* varEnd =strrchr(varStart,')');
     int varLen=varEnd-varStart;
@@ -225,7 +225,7 @@ int addToTable(char* text){
     }
 
     char base[50];
-    if(findfirstOccr(varName, '[')){
+    if(findfirstOcc(varName, '[')){
         sscanf(varName,"%[^[]",base);
     }
     else{
@@ -242,7 +242,7 @@ int addToTable(char* text){
 
 int checkInTable(char* text){
     char base[50];
-    if(findfirstOccr(text, '[')){
+    if(findfirstOcc(text, '[')){
         sscanf(text,"%[^[]",base);
     }
     else{
@@ -260,13 +260,13 @@ int validPrint(char*text,int flag_print_scan){
     char *s=text;
     if(flag_print_scan==0){s+=6;}
     else{s+=5;}
-    char *stringStart=findfirstOccr(s,'"');
+    char *stringStart=findfirstOcc(s,'"');
     char *stringEnd=strrchr(s,'"');
     int len=stringEnd-stringStart-1;
     strncpy(stringy,stringStart+1,len);
     stringy[len]='\0';
 
-    char* varStart =findfirstOccr(stringEnd+1,',');
+    char* varStart =findfirstOcc(stringEnd+1,',');
     varStart++;
     char* varEnd=strrchr(varStart,')');
     int varLen=varEnd-varStart;
