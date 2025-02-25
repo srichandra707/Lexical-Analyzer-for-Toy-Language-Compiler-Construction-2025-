@@ -14,8 +14,6 @@ typedef struct{
 
 variable map[MAX_VARIABLES];
 int mapCount=0;
-
-int requiredVariableCount=0;
 %}
 
 %x VARDECLARATIONS
@@ -87,6 +85,9 @@ STRING_CONST [^\"]*
         REJECT;
     }
 }
+
+
+
 <VARDECLARATIONS>[ \t\n]+ {}
 <VARDECLARATIONS>{KEYWORD} {printf("%s ---------- KEYWORD\n",yytext);}
 <VARDECLARATIONS>{SEPERATOR} {printf("%s ---------- SEPERATOR\n",yytext);}
@@ -115,15 +116,49 @@ STRING_CONST [^\"]*
 
 
 "scan"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE1})+\); {
-    int flag=validPrint(yytext,1);
-    if(flag==0){
-        printf(" %s ---------- Error: invalid input statement because of count mismatch\n",yytext);
+    char*s=yytext;
+    s+=5;
+    char *start=s;
+    while(*start!='"'){start++;}
+    char *end=start+1;
+    while(*end!='"'){end++;}
+    int len=end-start-1;
+    s=start+1;
+    int commacounter=0;
+    int atcounter=0;
+    int checkFlag=0;
+    while(s!=end){
+        if(*s!='@' && *s!=',' && *s!=' '){
+            checkFlag=1;
+            break;
+        }
+        if(*s==','){
+            commacounter++;
+        }
+        if(*s=='@'){
+            atcounter++;
+            //printf("atcounter: %d\n",atcounter);
+        }
+        s++;
     }
-    else if(flag==2){
-        printf("%s ---------- Error: invalid input statement because of undefined vars\n",yytext);
+    if(commacounter!=atcounter-1){
+        //printf("commacounter: %d, atcounter: %d\n",commacounter,atcounter);
+        checkFlag=1;
+    }
+    if(checkFlag==0){
+        int flag=validPrint(yytext,1);
+        if(flag==0){
+            printf(" %s ---------- Error: invalid input statement because of count mismatch\n",yytext);
+        }
+        else if(flag==2){
+            printf("%s ---------- Error: invalid input statement because of undefined vars\n",yytext);
+        }
+        else{
+            printf("%s ---------- Valid input statement\n",yytext);
+        }
     }
     else{
-        printf("%s ---------- Valid input statement\n",yytext);
+        printf("%s ---------- Error: invalid input statement\n",yytext);
     }
 }
 
@@ -140,45 +175,43 @@ STRING_CONST [^\"]*
 "scan"\(\"{STRING_CONST}\".*\); {
     printf("%s ---------- Invalid input statement\n",yytext);
 }
-
+"scan"\(.*\); {
+    printf("%s ---------- Invalid input statement\n",yytext);
+}
 
 "print"\(\"{STRING_CONST}\"\); {printf("%s ---------- Valid output statement\n",yytext);}
 
 "print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{CHAR_CONST})+\); {
-    char stringy[100]="";
-    char variables[100]="";
     char *s=yytext;
 
     s+=6;
-    char *stringStart =strchr(s,'"');
-    char *stringEnd =strrchr(s,'"');
-    int len=stringEnd-stringStart-1;
-    strncpy(stringy,stringStart+1,len);
-    stringy[len]='\0';
+    char *start=s;
+    while(*start!='"'){start++;}
+    char *ends=start+1;
+    while(*ends!='"'){ends++;}
+    int len=ends-start-1;
+    s=start+1;
+    int atcounter=0;
+    int commacounter=0;
+    char*vstart=ends+1;
+    char*vends=vstart+1;
+    while(*vends!=')'){vends++;}
+    int vlen=vends-vstart-1;
+    char*v=vstart;
 
-    char* varStart =strchr(stringEnd+1,',');
-    varStart++;
-    char* varEnd =strrchr(varStart,')');
-    int varLen=varEnd-varStart;
-    strncpy(variables,varStart,varLen);
-    variables[varLen]='\0';
-
-    int count=0;
-    int vars=1;
-    
-    for(char *c=stringy;*c;c++){
-        if(*c=='@'){
-            count++;
+    while(s!=ends){
+        if(*s=='@'){
+            atcounter++;
         }
+        s++;
     }
-    
-    for(char *c=variables;*c;c++){
-        if(*c==','){
-            vars++;
+    while(v!=vends){
+        if(*v==','){
+            commacounter++;
         }
+        v++;
     }
-
-    if(count!=vars){
+    if(atcounter!=commacounter){
         printf("%s ---------- Error: invalid output statement because of count mismatch\n",yytext);
     }
     else{
@@ -187,41 +220,37 @@ STRING_CONST [^\"]*
 }
 
 "print"\(\"{STRING_CONST}\"[ ]*(,[ ]*{PRINT_VARIABLE2})+\); {
-    char stringy[100]="";
-    char variables[100]="";
     char *s=yytext;
 
     s+=6;
-    char *stringStart =strchr(s,'"');
-    char *stringEnd =strrchr(s,'"');
-    int len=stringEnd-stringStart-1;
-    strncpy(stringy,stringStart+1,len);
-    stringy[len]='\0';
+    char *start=s;
+    while(*start!='"'){start++;}
+    char *ends=start+1;
+    while(*ends!='"'){ends++;}
+    int len=ends-start-1;
+    s=start+1;
+    int atcounter=0;
+    int commacounter=0;
+    char*vstart=ends+1;
+    char*vends=vstart+1;
+    while(*vends!=')'){vends++;}
+    int vlen=vends-vstart-1;
+    char*v=vstart;
 
-    char* varStart =strchr(stringEnd+1,',');
-    varStart++;
-    char* varEnd =strrchr(varStart,')');
-    int varLen=varEnd-varStart;
-    strncpy(variables,varStart,varLen);
-    variables[varLen]='\0';
-
-    int count=0;
-    int vars=1;
-    
-    for(char *c=stringy;*c;c++){
-        if(*c=='@'){
-            count++;
+    while(s!=ends){
+        if(*s=='@'){
+            atcounter++;
         }
+        s++;
     }
-    
-    for(char *c=variables;*c;c++){
-        if(*c==','){
-            vars++;
+    while(v!=vends){
+        if(*v==','){
+            commacounter++;
         }
+        v++;
     }
-    vars/=2;
-
-    if(count!=vars){
+    commacounter/=2;   
+    if(atcounter!=commacounter){
         printf("%s ---------- Error: invalid output statement because of count mismatch\n",yytext);
     }
     else{
@@ -279,19 +308,47 @@ int main(){
 }
 int addToTable(char* text){
     if(mapCount>=MAX_VARIABLES){
-        printf("Error: Variable table full\n");
+        printf("Error: var table full\n");
         return 0;
     }
-    char varName[50],varType[4];
-    if(sscanf(text,"(%[^,], %[^)])",varName,varType)!=2 ||
-    (strcmp(varType, "int") != 0 && strcmp(varType, "char") != 0)){
+    char varName[50],varType[5];
+    char*s=text;
+    s+=1;
+    while(*s==' '){s++;}
+    char*varstart=s;
+    while(*s!=','){s++;}
+    char*varend=s;
+    int len=varend-varstart;
+    strncpy(varName,varstart,len);
+    varName[len]='\0';
+    s++;
+    while(*s==' '){s++;}
+    char*typestart=s;
+    while(*s!=')'){s++;}
+    char*typeend=s;
+    int typelen=typeend-typestart;
+    strncpy(varType,typestart,typelen);
+    varType[typelen]='\0';
+    if(strcmp(varType, "int") != 0 && strcmp(varType, "char") != 0){
         printf("Error: error lexing variable decl\n");
         return 0;
     }
 
+
     char base[50];
-    if(strchr(varName, '[')){
-        sscanf(varName,"%[^[]",base);
+    int arrayflag=0;
+    s=varName;
+    while(*s!='\0'){
+        if(*s=='['){
+            arrayflag=1;
+            break;
+        }
+        s++;
+    }
+    if(arrayflag==1){
+        int arrlen=s-1-varstart+1;
+        strncpy(base,varstart,arrlen);
+        base[arrlen]='\0';
     }
     else{
         strcpy(base,varName);
@@ -303,6 +360,7 @@ int addToTable(char* text){
     }
     strcpy(map[mapCount].name,base);
     strcpy(map[mapCount].type,varType); 
+    //printf("%s %s\n",map[mapCount].name,map[mapCount].type);
     mapCount++;
     return 1;
 }
@@ -329,56 +387,78 @@ int validPrint(char*text,int flag_print_scan){
     char *s=text;
     if(flag_print_scan==0){s+=6;}
     else{s+=5;}
-    char *stringStart =strchr(s,'"');
-    char *stringEnd =strrchr(s,'"');
-    int len=stringEnd-stringStart-1;
-    strncpy(stringy,stringStart+1,len);
+    char *start=s;
+    while(*start!='"'){start++;}
+    char *end=start+1;
+    while(*end!='"'){end++;}
+    int len=end-start-1;
+    strncpy(stringy,start+1,len);
     stringy[len]='\0';
+    //printf("stringy: %s\n",stringy);
+    s=start+1;
 
-    char* varStart =strchr(stringEnd+1,',');
-    varStart++;
-    char* varEnd =strrchr(varStart,')');
-    int varLen=varEnd-varStart;
-    strncpy(variables,varStart,varLen);
-    variables[varLen]='\0';
+    int atcounter=0;
+    int commacounter=0;
 
-    int count=0;
-    int vars=1;
+    while(s!=end){
+        if(*s=='@'){
+            atcounter++;
+        }
+        s++;
+    }
+
+    char*varstart=end+1;
+    char*varend=varstart+1;
+    while(*varend!=')'){varend++;}
+    //printf("varstart:%s varend:%s\n",varstart,varend);
+    int varlen=varend-varstart;
+    strncpy(variables,varstart,varlen);
+    variables[varlen]='\0';
+    //printf("variables:%s\n",variables);
+    char*v=varstart;
+    while(v!=varend){
+        if(*v==','){
+            commacounter++;
+        }
+        v++;
+    }
     
-    for(char *c=stringy;*c;c++){
-        if(*c=='@'){
-            count++;
-        }
-    }
-    //printf("%d\n",count);
-    for(char *c=variables;*c;c++){
-        if(*c==','){
-            vars++;
-        }
-    }
     //printf("%d\n",vars);
-    if(count!=vars){
+    if(commacounter!=atcounter){
         return 0;
     }
 
-    char *var = variables;
+    char*var=variables;
+    //printf("var:%s\n",var);
     char varBuffer[50];
 
-    while(*var) {
-        while(*var == ' ') var++;
-        int i = 0;
-        while(*var && *var != ',' && *var != ')' && *var != ' ') {
-            varBuffer[i++] = *var++;
-            if(i >= 49) break;
+    while(*var!='\0'){
+        while(*var==' '){var++;}
+        //printf("var place 2:%s\n",var);
+        int i=0;
+        while(*var && *var!=',' && *var!=')' && *var!=' ') {
+            varBuffer[i++]=*var++;
+            //printf("varBuffer:%s\n",varBuffer);
+            if(i>=49){
+                break;
+            }
         }
-        varBuffer[i] = '\0';
-        while(*var == ' ' || *var == ',') var++;
+        varBuffer[i]='\0';
+        while(*var==' '||*var==','){var++;}
+        //printf("var place 3:%s\n",var);
 
-        if(strlen(varBuffer) > 0) {
-            if(checkInTable(varBuffer)==0) {
+        if(strlen(varBuffer)>0){
+            if(checkInTable(varBuffer)==0){
                 return 2;
             }
         }
     }
     return 1;
+}
+char* findfirstOcc(char*text,int ch) {
+    while(*text) {
+        if(*text==(char)ch) {return (char*)text;}
+        text++;
+    }
+    return NULL;
 }
