@@ -1,0 +1,104 @@
+<program> ::= "begin program:" <var_declaraction> <statement_list> "end program"
+
+<var_declaration> ::= "begin VarDecl:" <var_list> "end VarDecl"
+
+<var_list> ::= <var_declr> ";" | <var_list> <var_declr> ";"
+
+<var_declr> ::= "(" <identifier> "," <type> ")" | "(" <array_declr> "," <type> ")"
+
+<array_declr> ::= <identifier> "[" <decimal> "]"
+
+<type> ::= "int" | "char"
+
+<statement_list> ::= <statement> | <statement_list> <statement>
+
+<statement> ::=  <print_stmt> | <scan_stmt> | <assignment_stmt> | <conditional_stmt> | <loop_stmt> | <comments>
+
+<print_stmt> ::= "print" "(" <string_constant> ")" ";" | "print" "(" <string_constant> "," <identifier_list>")" ";"
+
+<scan_stmt> ::= "scan" "(" <scanf> "," <identifier_list> ")" ";"
+
+<scanf> ::= "@" "," <scanf> | "@"
+
+<assignment_stmt> ::= <identifier> <assignment_opr> <expression> ";"
+
+<assignment_opr> ::= ":=" | "+=" | "-=" | "*=" | "/=" | "%="
+
+<identifier_list> ::= <identifier> | <identifier_list> "," <identifier>
+
+<conditional_stmt> ::= <if_stmt> | <if_else_stmt>
+
+<if_stmt> ::= "if" <condition> <block>";"
+
+<if_else_stmt> ::= "if" <condition> <block> "else" <block> ";"
+
+<while_stmt> ::= "while" "(" <condition> ")" <block>";"
+
+<condition> ::= <expression> <rel_op> <expression>
+
+<for_stmt> ::= "for" <identifier> ":=" <expression> "to" <expression> <inc_dec> <expression> "do" <block> ";"
+
+<inc_dec> ::= "inc" | "dec"
+
+<block> ::= "begin" <block_statements> "end"
+
+<block_statements> ::= (<print_stmt> | <scan_stmt> | <assignment_stmt>) <block_stmt> 
+
+<block_stmt> ::=  Y | Y <block_stmt>
+Y ::= (<print_stmt> | <scan_stmt> | <assignment_stmt> | <comments>)
+
+<comments> ::= <single_line> | <multi_line>
+
+<single_line> ::= "//" <any_chars>
+
+<multi_line> ::= "/*" <any_chars> "*/"
+
+<expression> ::= <trm> | <expression> <add_op> <trm>
+
+<trm> ::= <fac> | <trm> <mul_op> <fac>
+
+<fac> ::= <identifier> | <constant> | "(" <expression> ")"
+
+<add_op> ::= "+" | "-"
+
+<mul_op> ::= "*" | "/" | "%"
+
+<rel_op> ::= "=" | ">" | "<" | ">=" | "<=" | "<>"
+
+<identifier> ::= <alpha> <rest>
+
+<rest> ::= "_" | <alphanumeric> | "_" <alphanumeric> | <alphanumeric> "_" <alphanumeric> | <alphanumeric> "_" | ε
+
+<alphanumeric> ::= <alpha> <alphanumeric> | <alpha> | <digit>
+
+<constant> ::= <int> | <char_constant> | <string_constant>
+
+<int> ::= "(" <number_base> ")"
+
+<number_base> ::= <decimal> "," "10" | <binary> "," "2" | <octal> "," "8" 
+
+<decimal> ::= <digit> | <decimal> <digit>
+
+<binary> ::= <binary_digit> | <binary> <binary_digit>
+
+<octal> ::= <octal_digit> | <octal> <octal_digit>
+
+<binary_digit> ::= "0" | "1"
+
+<octal_digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<alpha> ::= X | X <alpha>
+
+X ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+
+<char> ::= "'" <any_char> "'"
+
+<string_constant> ::= "“" <any_chars> "“"
+
+<any_chars> ::= <any_char> | <any_chars> <any_char>
+
+<any_char> ::= <alpha> | <digit> | <special_symbol> 
+
+<special_symbol> ::= "+" | "-" | "%" | "/" | "*" | "<" | ">" | "=" | "_" | "(" | ")" | ";" | "," | ":" | "{" | "}" | "@"
