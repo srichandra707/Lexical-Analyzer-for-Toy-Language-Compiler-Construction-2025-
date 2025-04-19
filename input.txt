@@ -1,0 +1,21 @@
+ begin program:
+ begin VarDecl:
+ (a, int);
+ (b, int);
+ (x, int)
+ //semicolon (;) is missing. This is an error
+ end VarDecl
+ a := (10, 10);
+ b := (5, 10);
+ x := (3, 10);
+ while (x > (0, 10))
+ begin
+ print("@", x);
+ x := x- (1, 10);
+ end //semicolon (;) is missing. This is an error
+ for a := a + (3, 10) to (1, 10) dec b- (2, 10) do
+ begin
+ print("a = @", a);
+ end;
+ end program
+ //Output: Syntax error !!!
